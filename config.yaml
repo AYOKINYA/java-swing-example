@@ -1,0 +1,12 @@
+- server:
+    port: 7000
+    name: Web Server 1
+    host: 127.0.0.1
+- server:
+    port: 9000
+    name: Web Server 2
+    host: 127.0.0.1
+- server:
+    port: 5000
+    name: S3
+    host: localhost
