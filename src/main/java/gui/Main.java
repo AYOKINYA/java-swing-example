@@ -64,8 +64,12 @@ public class Main extends JFrame {
 
         // Add components to frame
         add(topBarView, BorderLayout.NORTH);
-        add(new JScrollPane(sideBarView), BorderLayout.WEST);
-        add(contentView, BorderLayout.CENTER);
+//        add(new JScrollPane(sideBarView), BorderLayout.WEST);
+//        add(contentView, BorderLayout.CENTER);
+        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, new JScrollPane(sideBarView), contentView);
+        splitPane.setResizeWeight(0.3); // Set the resize weight to 30% for sidebar (3:7 ratio)
+        splitPane.setDividerSize(5); // Optional: Set divider size
+        add(splitPane, BorderLayout.CENTER);
         add(bottomBarView, BorderLayout.SOUTH);
 
         // Load servers from configuration file or add sample data if file doesn't exist
@@ -89,8 +93,8 @@ public class Main extends JFrame {
         });
         serverManager.addPropertyChangeListener(ServerManager.PROP_SERVER_REMOVED, evt -> {
             if (!serverManager.isBatchOperation()) {
-        saveConfigurationsToFile();
-    }
+                saveConfigurationsToFile();
+            }
         });
 
         // Listen for the end of batch operations
@@ -104,13 +108,11 @@ public class Main extends JFrame {
         try {
             configFileManager.saveConfigurations(serverManager.getAllServers(), CONFIG_FILE_PATH);
         } catch (Exception e) {
-            // Handle save errors
             System.err.println("Failed to save configurations: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
-    // src/main/java/gui/Main.java
     private void loadConfigurationsFromFile() {
         List<Server> servers = configFileManager.loadConfigurations(CONFIG_FILE_PATH);
 

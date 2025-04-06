@@ -1,4 +1,3 @@
-// src/main/java/gui/controller/SideBarController.java
 package gui.controller;
 
 import gui.model.Server;

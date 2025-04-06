@@ -5,7 +5,12 @@ import gui.model.Server;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 public class ContentView extends JPanel {
     private JPanel contentPanel;
@@ -16,6 +21,10 @@ public class ContentView extends JPanel {
     private JTable detailsTable;
     private DefaultTableModel tableModel;
     private Server currentServer; // Track current server for context menu
+
+    // Buttons
+    private JButton saveButton;
+    private JButton undoButton;
 
     public ContentView() {
         setLayout(new BorderLayout());
@@ -68,9 +77,16 @@ public class ContentView extends JPanel {
         formPanel.add(portField, gbc);
 
         // Create table for additional details
-        String[] columns = {"Property", "Value"};
-        tableModel = new DefaultTableModel(columns, 0);
+        String[] columns = {"Property", "Value", "Description", "Extra"};
+        tableModel = new DefaultTableModel(columns, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                // Make all cells editable
+                return true;
+            }
+        };
         detailsTable = new JTable(tableModel);
+
         JScrollPane tableScrollPane = new JScrollPane(detailsTable);
         tableScrollPane.setPreferredSize(new Dimension(400, 200));
 
@@ -78,12 +94,29 @@ public class ContentView extends JPanel {
         nameField.setEditable(false);
         hostField.setEditable(false);
         portField.setEditable(false);
-        detailsTable.setEnabled(false);
+
+        // Create button panel
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        saveButton = new JButton("Save Configurations");
+        undoButton = new JButton("Undo");
+        undoButton.setEnabled(false); // Initially disabled
+        buttonPanel.add(undoButton);
+        buttonPanel.add(saveButton);
+
+        // Add action listeners to buttons
+        // You can add action listener to save button here.
+        saveButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                System.out.println("Save button clicked");
+            }
+        });
 
         // Add everything to content panel
         contentPanel.add(statusPanel, BorderLayout.NORTH);
         contentPanel.add(formPanel, BorderLayout.CENTER);
         contentPanel.add(tableScrollPane, BorderLayout.SOUTH);
+        contentPanel.add(buttonPanel, BorderLayout.EAST);
 
         // Add placeholder message
         showPlaceholder();
@@ -131,6 +164,8 @@ public class ContentView extends JPanel {
         for (Object[] row : properties) {
             tableModel.addRow(row);
         }
+        // Adjust column width
+        adjustAllColumnWidth();
 
         add(contentPanel, BorderLayout.CENTER);
         revalidate();
@@ -169,9 +204,10 @@ public class ContentView extends JPanel {
         }
 
         Object[][] properties = {
-                {"ID", server.getId().getId()},
-                {"Status", server.getStatus()},
-                {"Full Address", server.getConfig().getHost() + ":" + server.getConfig().getPort()}
+                {"ID", server.getId().getId(), "Server unique identifier", "Extra Info 1"},
+                {"Status", server.getStatus(), "Current server status", "Extra Info 2"},
+                {"Full Address", server.getConfig().getHost() + ":" + server.getConfig().getPort(), "Server network address", "Extra Info 3"},
+                {"Description", "This is a sample description", "Description of the server", "Extra Info 4"}
         };
 
         updateContent(name, host, port, status, statusColor, properties);
@@ -185,5 +221,36 @@ public class ContentView extends JPanel {
     // Getter for context menu
     public Server getCurrentServer() {
         return currentServer;
+    }
+
+
+    private void adjustColumnWidth(int columnIndex) {
+        TableColumn column = detailsTable.getColumnModel().getColumn(columnIndex);
+        int width = 0;
+
+        // Get width of header
+        TableCellRenderer renderer = detailsTable.getTableHeader().getDefaultRenderer();
+        Component headerComp = renderer.getTableCellRendererComponent(detailsTable, column.getHeaderValue(), false, false, 0, 0);
+        width = Math.max(width, headerComp.getPreferredSize().width);
+
+        // Get width of each cell
+        for (int row = 0; row < detailsTable.getRowCount(); row++) {
+            TableCellRenderer cellRenderer = detailsTable.getCellRenderer(row, columnIndex);
+            Component cellComp = detailsTable.prepareRenderer(cellRenderer, row, columnIndex);
+            width = Math.max(width, cellComp.getPreferredSize().width);
+        }
+
+        // Add some padding
+        width += 3;
+
+        // Set the preferred width
+        column.setPreferredWidth(width);
+    }
+
+    private void adjustAllColumnWidth() {
+        TableColumnModel columnModel = detailsTable.getColumnModel();
+        for (int i = 0; i < columnModel.getColumnCount(); i++) {
+            adjustColumnWidth(i);
+        }
     }
 }
